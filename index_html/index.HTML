@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0e27">
+    <title>ES Board — God Version (Ultra Premium)</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --secondary: #ff006e;
+            --tertiary: #8338ec;
+            --accent: #ffbe0b;
+            --bg-dark: #0a0e27;
+            --bg-light: #f8f9fa;
+            --surface-dark: rgba(15, 23, 42, 0.7);
+            --surface-light: rgba(248, 249, 250, 0.9);
+            --text-dark: #e0e0e0;
+            --text-light: #1a1a1a;
+            --border-color: rgba(0, 212, 255, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --glow-primary: 0 0 20px rgba(0, 212, 255, 0.5);
+            --glow-secondary: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a3e 100%);
+            color: var(--text-dark);
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+            position: relative;
+            contain: layout style paint;
+            margin: 0;
+            padding: 0;
+            padding-top: max(0px, env(safe-area-inset-top));
+            padding-bottom: max(0px, env(safe-area-inset-bottom));
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, var(--bg-light) 0%, #e8eef7 100%);
+            color: var(--text-light);
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+            animation: bgShift 10s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+        }
+
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+            animation: fadeOut 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .login-container {
+            backdrop-filter: blur(20px);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(131, 56, 236, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            opacity: 0.6;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            color: var(--text-dark);
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .login-input::placeholder {
+            color: rgba(224, 224, 224, 0.4);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--glow-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary), 0 10px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-container.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Main Container - WhatsApp Style */
+        .main-container {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.8s ease-out;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        /* Header */
+        .header {
+            backdrop-filter: blur(20px);
+            background: linear-gradient(135deg, var(--surface-dark) 0%, rgba(131, 56, 236, 0.05) 100%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--tertiary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.5px;
+        }
+
+        .countdown {
+            backdrop-filter: blur(15px);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 120px;
+            text-align: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .message-counter {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: var(--glow-primary);
+        }
+
+        .logout-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+            border-radius: 10px;
+            color: var(--secondary);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 0, 110, 0.2);
+            box-shadow: var(--glow-secondary);
+        }
+
+        /* Tabs Section */
+        .tabs-container {
+            backdrop-filter: blur(15px);
+            background: var(--surface-dark);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            gap: 30px;
+            position: relative;
+            overflow-x: auto;
+            animation: slideDown 0.7s ease-out 0.1s both;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tabs-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            background: none;
+            color: var(--text-dark);
+            position: relative;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab-slider {
+            position: absolute;
+            bottom: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--tertiary));
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Messages Section */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 24px;
+            animation: slideUp 0.7s ease-out 0.2s both;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            contain: layout style paint;
+            will-change: scroll-position;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            min-height: 0;
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.6);
+        }
+
+        .message {
+            backdrop-filter: blur(10px);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.5) 0%, rgba(131, 56, 236, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            max-width: 600px;
+            animation: messageSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+            will-change: transform;
+            contain: layout style;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+
+        .message.own-message {
+            margin-left: auto;
+            margin-right: 0;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(131, 56, 236, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 16px 4px 16px 16px;
+        }
+
+        .message.other-message {
+            margin-left: 0;
+            margin-right: auto;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(131, 56, 236, 0.05) 100%);
+            border: 1px solid rgba(255, 0, 110, 0.2);
+            border-radius: 4px 16px 16px 16px;
+        }
+
+        .message:hover {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(131, 56, 236, 0.1) 100%);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .message.own-message:hover {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(131, 56, 236, 0.15) 100%);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.25);
+        }
+
+        .message.other-message:hover {
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.15) 0%, rgba(131, 56, 236, 0.1) 100%);
+            box-shadow: 0 8px 25px rgba(255, 0, 110, 0.15);
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-author {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 15px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        .message-text a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .message-text a:hover {
+            text-decoration: underline;
+            color: var(--tertiary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+        }
+
+        /* Input Area */
+        .input-area {
+            backdrop-filter: blur(20px);
+            background: var(--surface-dark);
+            border-top: 1px solid var(--border-color);
+            padding: 20px 24px;
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            display: flex;
+            gap: 12px;
+            animation: slideUp 0.7s ease-out 0.3s both;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            background: none;
+            color: var(--text-dark);
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+            line-height: 1.4;
+            overflow-y: auto;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message-input::placeholder {
+            color: rgba(224, 224, 224, 0.4);
+        }
+
+        .emoji-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .send-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--tertiary) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+            font-size: 14px;
+            min-width: 80px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform, box-shadow;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px) translateZ(0);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 10px 25px rgba(0, 212, 255, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0) translateZ(0);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            backdrop-filter: blur(20px);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 16px 24px;
+            border-radius: 12px;
+            max-width: 300px;
+            animation: toastSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: var(--shadow);
+            z-index: 8000;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.removing {
+            animation: toastSlideOut 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+
+        /* Loading Indicator */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .countdown {
+                min-width: auto;
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+
+            .message-counter {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .tabs-container {
+                padding: 12px 16px;
+                gap: 20px;
+            }
+
+            .tab {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            .messages-container {
+                padding: 12px;
+            }
+
+            .message {
+                max-width: 85%;
+                padding: 12px;
+                margin-bottom: 8px;
+            }
+
+            .message.own-message {
+                margin-left: auto;
+            }
+
+            .message.other-message {
+                margin-right: auto;
+            }
+
+            .input-area {
+                padding: 16px;
+                gap: 8px;
+            }
+
+            .message-input {
+                font-size: 13px;
+            }
+
+            .send-btn {
+                padding: 10px 16px;
+                min-width: 70px;
+            }
+
+            .login-container {
+                padding: 40px;
+            }
+
+            .toast {
+                bottom: 20px;
+                right: 20px;
+                max-width: 85vw;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-left {
+                gap: 12px;
+                width: 100%;
+            }
+
+            .title {
+                font-size: 18px;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 8px;
+            }
+
+            .countdown {
+                min-width: auto;
+                font-size: 10px;
+            }
+
+            .message-counter {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .user-header {
+                margin-right: 0;
+                padding: 6px 12px;
+            }
+
+            .theme-toggle,
+            .logout-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .tabs-container {
+                gap: 12px;
+                padding: 8px 12px;
+            }
+
+            .tab {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .messages-container {
+                padding: 8px;
+            }
+
+            .message {
+                max-width: 90%;
+                padding: 10px;
+                margin-bottom: 6px;
+            }
+
+            .message-author {
+                font-size: 13px;
+            }
+
+            .message-text {
+                font-size: 13px;
+            }
+
+            .message-time {
+                font-size: 11px;
+            }
+
+            .input-area {
+                padding: 12px;
+                gap: 6px;
+            }
+
+            .emoji-btn {
+                font-size: 16px;
+            }
+
+            .send-btn {
+                padding: 10px 12px;
+                min-width: 60px;
+                font-size: 12px;
+            }
+
+            .login-container {
+                padding: 30px;
+                width: 95%;
+            }
+
+            .login-title {
+                font-size: 24px;
+            }
+        }
+
+        /* Light theme adjustments */
+        body.light-theme .tab {
+            color: var(--text-light);
+        }
+
+        body.light-theme .tab.active {
+            color: var(--primary);
+        }
+
+        body.light-theme .message-input::placeholder {
+            color: rgba(26, 26, 26, 0.4);
+        }
+
+        body.light-theme .emoji-btn {
+            opacity: 0.7;
+        }
+
+        /* User Selection Overlay */
+        .user-selection-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .user-selection-overlay.hidden {
+            display: none;
+        }
+
+        .user-selection-container {
+            backdrop-filter: blur(20px);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(131, 56, 236, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 20px;
+            padding: 50px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .user-selection-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .user-selection-subtitle {
+            text-align: center;
+            opacity: 0.6;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .user-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .user-card {
+            backdrop-filter: blur(15px);
+            background: rgba(0, 212, 255, 0.05);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--primary), var(--tertiary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .user-card.user-salma .user-avatar {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.4);
+        }
+
+        .user-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .user-status {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-right: 4px;
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { 
+                background: var(--accent);
+                box-shadow: 0 0 4px var(--accent);
+            }
+            50% { 
+                background: #ffbe0b;
+                box-shadow: 0 0 8px #ffbe0b;
+            }
+        }
+
+        .status-indicator.offline {
+            background: #888;
+            animation: none;
+        }
+
+        /* User Header with Avatar */
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: 20px;
+            padding: 8px 16px;
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--tertiary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .user-header.salma .user-avatar-small {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .user-name-small {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .user-status-small {
+            font-size: 11px;
+            opacity: 0.6;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
+        }
+
+        /* Message Reactions */
+        .message-reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .reaction {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reaction:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .reaction-count {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* Pinned Badge */
+        .pinned-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, rgba(255, 190, 11, 0.2) 0%, rgba(255, 0, 110, 0.1) 100%);
+            border: 1px solid rgba(255, 190, 11, 0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 8px;
+        }
+
+        /* Message Actions */
+        .message-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .message-action-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 6px;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message-action-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: none;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--surface-dark);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-bar.active {
+            display: flex;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-dark);
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+        }
+
+        .search-close-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid rgba(255, 0, 110, 0.2);
+            border-radius: 8px;
+            color: var(--secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-close-btn:hover {
+            background: rgba(255, 0, 110, 0.2);
+        }
+
+        /* Message Date Divider */
+        .message-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px 0;
+            opacity: 0.4;
+        }
+
+        .message-divider::before,
+        .message-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .message-divider-text {
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Emoji Reaction Popup */
+        .emoji-reaction-popup {
+            position: fixed;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            gap: 4px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            animation: slideUp 0.2s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        .emoji-reaction-popup button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-reaction-popup button:hover {
+            background: rgba(0, 212, 255, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Edit Mode */
+        .message.edit-mode {
+            background: rgba(255, 190, 11, 0.05);
+            border: 1px solid rgba(255, 190, 11, 0.2);
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-family: inherit;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-actions button {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-save-btn {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .edit-save-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+        }
+
+        .edit-cancel-btn {
+            background: rgba(255, 0, 110, 0.2);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .edit-cancel-btn:hover {
+            background: rgba(255, 0, 110, 0.3);
+        }
+
+        /* Offline Queue Indicator */
+        .offline-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 110, 0.2);
+            border: 1px solid var(--secondary);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 7000;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .offline-indicator.hidden {
+            display: none;
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotateZ(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Delivery Status */
+        .delivery-status {
+            display: inline-block;
+            font-size: 11px;
+            margin-left: 6px;
+            opacity: 0.6;
+        }
+
+        .delivery-status.sent {
+            color: var(--primary);
+        }
+
+        .delivery-status.delivered {
+            color: var(--primary);
+        }
+
+        .delivery-status.seen {
+            color: var(--accent);
+            opacity: 0.8;
+        }
+
+        /* Message Bubble Styling */
+        .message.own-message {
+            margin-left: auto;
+            margin-right: 0;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(131, 56, 236, 0.08) 100%);
+        }
+
+        .message.other-message {
+            margin-left: 0;
+            margin-right: auto;
+            background: linear-gradient(135deg, rgba(255, 0, 110, 0.05) 0%, rgba(131, 56, 236, 0.05) 100%);
+        }
+
+        /* Responsive Search */
+        @media (max-width: 768px) {
+            .search-bar {
+                padding: 12px 16px;
+            }
+
+            .user-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .user-selection-container {
+                padding: 40px 24px;
+            }
+
+            .message.own-message,
+            .message.other-message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-container" id="loginContainer">
+            <h1 class="login-title">🔐 ES Board</h1>
+            <p class="login-subtitle">Ultra Premium Experience</p>
+            <input 
+                type="password" 
+                class="login-input" 
+                id="passwordInput" 
+                placeholder="Enter password..."
+                autocomplete="off"
+            />
+            <button class="login-button" id="loginButton">Unlock</button>
+        </div>
+    </div>
+
+    <!-- User Selection Overlay -->
+    <div class="user-selection-overlay hidden" id="userSelectionOverlay">
+        <div class="user-selection-container" id="userSelectionContainer">
+            <h1 class="user-selection-title">👥 Choose Your Identity</h1>
+            <p class="user-selection-subtitle">Select your user profile to continue</p>
+            <div class="user-cards">
+                <div class="user-card user-eyad" data-user="eyad">
+                    <div class="user-avatar">👨</div>
+                    <div class="user-name">Eyad</div>
+                    <div class="user-status"><span class="status-indicator"></span>Ready</div>
+                </div>
+                <div class="user-card user-salma" data-user="salma">
+                    <div class="user-avatar">👩</div>
+                    <div class="user-name">Salma</div>
+                    <div class="user-status"><span class="status-indicator"></span>Ready</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline Indicator -->
+    <div class="offline-indicator hidden" id="offlineIndicator">
+        📡 Offline Mode - Messages will sync when connected
+    </div>
+
+    <!-- Main App -->
+    <div class="main-container" id="mainContainer" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="title">✨ ES Board</div>
+                <div class="user-header eyad" id="userHeader">
+                    <div class="user-avatar-small">👨</div>
+                    <div class="user-info">
+                        <div class="user-name-small" id="currentUserName">Eyad</div>
+                        <div class="user-status-small" id="currentUserStatus">
+                            <span class="status-indicator"></span>
+                            <span>Online</span>
+                            <span id="currentUserTyping" style="display: none;">
+                                <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="countdown" id="countdown"></div>
+            </div>
+            <div class="header-right">
+                <div class="message-counter" id="messageCounter">0 messages</div>
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+                <button class="theme-toggle" id="searchToggle" title="Search" style="background: rgba(131, 56, 236, 0.1); border: 1px solid rgba(131, 56, 236, 0.3);">🔍</button>
+                <button class="logout-btn" id="logoutBtn" title="Logout">🚪</button>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-bar" id="searchBar">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="Search messages, users, dates..." 
+                autocomplete="off"
+            />
+            <button class="search-close-btn" id="searchCloseBtn">✕</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container" id="tabsContainer">
+            <button class="tab active" data-tab="all">All</button>
+            <button class="tab" data-tab="new">New</button>
+            <button class="tab" data-tab="earlier">Earlier</button>
+            <button class="tab" data-tab="pinned">📌 Pinned</button>
+            <div class="tab-slider" id="tabSlider"></div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">No messages yet. Start the conversation!</div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <button class="emoji-btn" id="emojiBtn" title="Add emoji">😊</button>
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Type your message (Shift+Enter for new line)..."
+                    autocomplete="off"
+                    rows="1"
+                ></textarea>
+            </div>
+            <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        /*
+         * ╔═══════════════════════════════════════════════════════════════════════════╗
+         * ║                   ES BOARD — GOD VERSION v3.0                             ║
+         * ║                    ULTRA PREMIUM MESSAGING APP                            ║
+         * ╚═══════════════════════════════════════════════════════════════════════════╝
+         * 
+         * 🎯 KEY FEATURES:
+         *   ✅ Multi-user real-time messaging (Eyad ↔ Salma)
+         *   ✅ Firebase Firestore integration with real-time sync
+         *   ✅ Persistent message storage (Firebase + localStorage fallback)
+         *   ✅ Offline mode with automatic sync
+         *   ✅ Receiver tracking for two-way conversations
+         *   ✅ Delivery status (sent, delivered, seen)
+         *   ✅ Typing indicators with live updates
+         *   ✅ Message editing, deletion, reactions, pinning
+         *   ✅ Search filtering by keywords, users, dates
+         *   ✅ Glassmorphism UI with ultra-premium animations
+         *   ✅ Dark/Light theme toggle with localStorage persistence
+         *   ✅ Haptic feedback & sound effects
+         *   ✅ Easter egg God Mode triggered by keywords
+         *   ✅ Infinite scroll with lazy-loading
+         * 
+         * 📱 AUTHENTICATION FLOW:
+         *   1. Enter password: 2MAY
+         *   2. Select user: Eyad or Salma
+         *   3. One shared conversation feed (both users see all messages)
+         *   4. Messages show sender/receiver for clarity
+         * 
+         * 💾 STORAGE ARCHITECTURE:
+         *   - Primary: Firebase Firestore (real-time sync)
+         *   - Backup: localStorage (offline mode)
+         *   - Messages structure: { id, text, author, receiver, timestamp, reactions, pinned, edited, delivered, seen }
+         * 
+         * 🚀 PERFORMANCE:
+         *   - Optimized for 500+ messages
+         *   - Staggered animations prevent jank
+         *   - Virtual scrolling ready for thousands of messages
+         *   - Efficient DOM updates with proper cleanup
+         */
+
+        // ==================== APP CONFIGURATION ====================
+        const CONFIG = {
+            PASSWORD: '2MAY',
+            USERS: {
+                EYAD: { name: 'Eyad', avatar: '👨', color: 'primary' },
+                SALMA: { name: 'Salma', avatar: '👩', color: 'secondary' }
+            },
+            STORAGE_KEYS: {
+                MESSAGES: 'esboard_messages',
+                THEME: 'esboard-theme',
+                CURRENT_USER: 'esboard-current-user',
+                DRAFT: 'esboard-draft',
+                PINNED: 'esboard-pinned',
+                TYPING: 'esboard-typing'
+            },
+            EASTEREGG_KEYWORDS: ['god', 'ultra', 'premium', 'legend', 'boss'],
+            FIREBASE_CONFIG: {
+                apiKey: "AIzaSyBnVlY6Z6YZ6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z6Z",
+                authDomain: "es-board-premium.firebaseapp.com",
+                projectId: "es-board-premium",
+                storageBucket: "es-board-premium.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:abcdef123456"
+            }
+        };
+
+        // ==================== PERFORMANCE UTILITIES ====================
+        // Throttle function - limit frequency of expensive operations
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        }
+
+        // Debounce function - delay execution until timeout
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Batch updates using requestAnimationFrame
+        function batchUpdate(callback) {
+            if (!window.updateScheduled) {
+                window.updateScheduled = true;
+                requestAnimationFrame(() => {
+                    callback();
+                    window.updateScheduled = false;
+                });
+            }
+        }
+
+        // Auto-expand textarea as user types
+        function autoExpandTextarea(textarea) {
+            // Reset height first to get accurate scrollHeight
+            textarea.style.height = 'auto';
+            // Set to scrollHeight, capped at max-height (100px = ~5 lines)
+            const newHeight = Math.min(textarea.scrollHeight, 100);
+            textarea.style.height = newHeight + 'px';
+            
+            // Ensure input area stays visible and scroll to bottom if typing
+            requestAnimationFrame(() => {
+                textarea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+
+        // ==================== APP STATE ====================
+        const appState = {
+            messages: [],
+            filteredMessages: [],
+            currentTab: 'all',
+            currentUser: null,
+            otherUser: null,
+            isLoggedIn: false,
+            theme: localStorage.getItem(CONFIG.STORAGE_KEYS.THEME) || 'dark',
+            isLoadingMore: false,
+            searchQuery: '',
+            pinnedMessages: new Set(),
+            offlineQueue: [],
+            isOnline: navigator.onLine,
+            typingUsers: new Set(),
+            db: null,
+            unsubscribe: null,
+            userTyping: false,
+            _scrollMemory: null,
+            _pollInterval: null,
+            _countdownInterval: null,
+            _typingInterval: null
+        };
+
+        const emojis = ['😊', '😂', '😍', '🤔', '👍', '🎉', '🔥', '💯', '👌', '✨', '🚀', '💼', '📱', '🎨', '🌟'];
+        const reactionEmojis = ['👍', '❤️', '😂', '😲', '🔥', '✨'];
+
+        // ==================== DOM ELEMENTS ====================
+        const elements = {
+            loginOverlay: document.getElementById('loginOverlay'),
+            passwordInput: document.getElementById('passwordInput'),
+            loginButton: document.getElementById('loginButton'),
+            userSelectionOverlay: document.getElementById('userSelectionOverlay'),
+            userCards: document.querySelectorAll('.user-card'),
+            mainContainer: document.getElementById('mainContainer'),
+            messagesContainer: document.getElementById('messagesContainer'),
+            messageInput: document.getElementById('messageInput'),
+            sendBtn: document.getElementById('sendBtn'),
+            messageCounter: document.getElementById('messageCounter'),
+            countdown: document.getElementById('countdown'),
+            tabsContainer: document.getElementById('tabsContainer'),
+            tabSlider: document.getElementById('tabSlider'),
+            themeToggle: document.getElementById('themeToggle'),
+            searchToggle: document.getElementById('searchToggle'),
+            searchBar: document.getElementById('searchBar'),
+            searchInput: document.getElementById('searchInput'),
+            searchCloseBtn: document.getElementById('searchCloseBtn'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            emojiBtn: document.getElementById('emojiBtn'),
+            userHeader: document.getElementById('userHeader'),
+            currentUserName: document.getElementById('currentUserName'),
+            currentUserStatus: document.getElementById('currentUserStatus'),
+            offlineIndicator: document.getElementById('offlineIndicator')
+        };
+
+        // ==================== INITIALIZATION ====================
+        function init() {
+            loadTheme();
+            setupCountdown();
+            setupEventListeners();
+            setupFirestore();
+            loadSavedMessages();
+            setupNetworkListeners();
+            setupTabSlider();
+            
+            // Restore draft message
+            const savedDraft = localStorage.getItem(CONFIG.STORAGE_KEYS.DRAFT);
+            if (savedDraft) {
+                elements.messageInput.value = savedDraft;
+            }
+
+            // Start periodic checks for new messages if using localStorage
+            if (!appState.db) {
+                appState._pollInterval = setInterval(() => {
+                    loadSavedMessages();
+                }, 2000);
+            }
+            setupMobileKeyboardFix();
+        }
+
+        // ==================== MOBILE INPUT FIX ====================
+        function setupMobileKeyboardFix() {
+            const messageInput = elements.messageInput;
+            let originalHeight = window.innerHeight;
+
+            window.addEventListener('resize', debounce(() => {
+                const currentHeight = window.innerHeight;
+                const isKeyboardOpen = currentHeight < originalHeight * 0.75;
+                
+                if (isKeyboardOpen) {
+                    setTimeout(() => {
+                        messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        scrollToBottom();
+                    }, 100);
+                }
+            }, 100), { passive: true });
+
+            messageInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    messageInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 300);
+            }, { passive: true });
+        }
+
+        // ==================== EVENT SETUP ====================
+        function setupEventListeners() {
+            // Login
+            elements.loginButton.addEventListener('click', handleLogin);
+            elements.passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+
+            // User Selection
+            elements.userCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    handleUserSelection(card.dataset.user);
+                });
+            });
+
+            // Messages
+            elements.sendBtn.addEventListener('click', sendMessage);
+            elements.messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Auto-expand textarea and draft autosave
+            // Auto-expand textarea and draft autosave - debounced to prevent lag
+            elements.messageInput.addEventListener('input', (e) => {
+                // Auto-expand textarea (sync, fast operation)
+                autoExpandTextarea(e.target);
+                
+                // Debounced draft save and typing broadcast
+                clearTimeout(elements.messageInput._draftTimeout);
+                elements.messageInput._draftTimeout = setTimeout(() => {
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.DRAFT, e.target.value);
+                    broadcastTypingStatus(e.target.value.length > 0);
+                }, 300);
+            });
+
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    setActiveTab(e.target.dataset.tab);
+                });
+            });
+
+            // Theme
+            elements.themeToggle.addEventListener('click', toggleTheme);
+            elements.logoutBtn.addEventListener('click', logout);
+            elements.emojiBtn.addEventListener('click', showEmojiPicker);
+
+            // Search - debounced to prevent lag
+            elements.searchToggle.addEventListener('click', toggleSearch);
+            elements.searchCloseBtn.addEventListener('click', closeSearch);
+            elements.searchInput.addEventListener('input', debounce((e) => {
+                // Preserve scroll position during search
+                preserveScrollPosition('before');
+                appState.searchQuery = e.target.value.toLowerCase();
+                filterMessages();
+                
+                // Restore scroll or auto-scroll if search results are small
+                requestAnimationFrame(() => {
+                    preserveScrollPosition('after');
+                    if (appState.filteredMessages.length < 5 && appState.searchQuery) {
+                        scrollToBottom();
+                    }
+                });
+            }, 300));
+
+            // Infinite Scroll - throttled for performance, merged with new message indicator
+            elements.messagesContainer.addEventListener('scroll', throttle(() => {
+                handleInfiniteScroll();
+                if (isScrolledToBottom()) {
+                    hideNewMessageIndicator();
+                }
+            }, 100), { passive: true });
+        }
+
+        // ==================== AUTHENTICATION ====================
+        function handleLogin() {
+            const password = elements.passwordInput.value;
+            if (password === CONFIG.PASSWORD) {
+                elements.loginOverlay.classList.add('hidden');
+                elements.userSelectionOverlay.classList.remove('hidden');
+                elements.passwordInput.value = '';
+                playSound('login');
+                if (navigator.vibrate) navigator.vibrate(100);
+            } else {
+                elements.loginContainer.classList.remove('shake');
+                void elements.loginContainer.offsetWidth;
+                elements.loginContainer.classList.add('shake');
+                showToast('❌ Wrong password. Try again!');
+                playSound('error');
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+            }
+        }
+
+        function handleUserSelection(userKey) {
+            appState.currentUser = userKey;
+            appState.otherUser = userKey === 'eyad' ? 'salma' : 'eyad';
+            localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENT_USER, userKey);
+            appState.isLoggedIn = true;
+            
+            // Hide overlays
+            elements.userSelectionOverlay.classList.add('hidden');
+            elements.mainContainer.style.display = 'flex';
+            
+            // Update UI
+            updateUserHeader();
+            setupFirestoreListener();
+            filterMessages();
+            
+            // Ensure scroll to bottom after DOM is fully rendered
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (appState.filteredMessages.length > 0) {
+                        scrollToBottom();
+                    }
+                });
+            });
+            
+            showToast(`👋 Welcome ${CONFIG.USERS[userKey.toUpperCase()].name}!`);
+            playSound('login');
+            if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+        }
+
+        function logout() {
+            appState.isLoggedIn = false;
+            appState.currentUser = null;
+            appState.messages = [];
+            appState.filteredMessages = [];
+            
+            // Cleanup Firestore listener
+            if (appState.unsubscribe) {
+                appState.unsubscribe();
+                appState.unsubscribe = null;
+            }
+            
+            // Clear polling interval if exists
+            if (appState._pollInterval) {
+                clearInterval(appState._pollInterval);
+                appState._pollInterval = null;
+            }
+            
+            elements.mainContainer.style.display = 'none';
+            elements.userSelectionOverlay.classList.remove('hidden');
+            elements.messagesContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">No messages yet. Start the conversation!</div></div>';
+            elements.messageCounter.textContent = '0 messages';
+            
+            // Clear draft
+            localStorage.removeItem(CONFIG.STORAGE_KEYS.DRAFT);
+            elements.messageInput.value = '';
+            
+            showToast('👋 Logged out successfully');
+            setActiveTab('all');
+        }
+
+        // ==================== USER MANAGEMENT ====================
+        function updateUserHeader() {
+            const user = CONFIG.USERS[appState.currentUser.toUpperCase()];
+            elements.userHeader.className = 'user-header ' + appState.currentUser;
+            elements.currentUserName.textContent = user.name;
+            elements.userHeader.querySelector('.user-avatar-small').textContent = user.avatar;
+        }
+
+        // ==================== MESSAGING CORE ====================
+        // MESSAGE ORDERING & FLOW:
+        // ✓ Messages stored in CHRONOLOGICAL ORDER (oldest→newest) in appState.messages
+        // ✓ Rendered TOP→BOTTOM: oldest messages at top, newest at bottom (WhatsApp-style)
+        // ✓ New messages PUSHED to end of array (not unshifted to beginning)
+        // ✓ Firestore ordered by timestamp ASC, messages pulled with push() not unshift()
+        // ✓ renderMessages() uses requestAnimationFrame for optimal DOM batch operations
+        // ✓ Smooth scroll animation with easing when auto-scrolling to bottom
+        // ✓ \"New Messages\" indicator appears when user scrolls up, hides on scroll down
+        // ✓ Page loads/console logs do NOT affect message positioning
+        async function sendMessage() {
+            const text = elements.messageInput.value.trim();
+            
+            if (!text) {
+                showToast('📝 Please type a message!');
+                return;
+            }
+
+            elements.sendBtn.disabled = true;
+
+            const message = {
+                id: Date.now().toString(),
+                text,
+                author: appState.currentUser,
+                receiver: appState.otherUser,
+                timestamp: Date.now(),
+                reactions: {},
+                pinned: false,
+                edited: false,
+                editHistory: [],
+                delivered: appState.isOnline,
+                seen: false
+            };
+
+            // Check for easter eggs
+            if (CONFIG.EASTEREGG_KEYWORDS.some(kw => text.toLowerCase().includes(kw))) {
+                triggerGodMode();
+            }
+
+            try {
+                // Try Firebase first
+                if (appState.db) {
+                    await appState.db.collection('conversations').doc('eyad_salma').collection('messages').add({
+                        ...message,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Fallback to localStorage
+                    appState.messages.push(message);
+                    appState.messages.sort((a, b) => a.timestamp - b.timestamp);
+                    saveMessages();
+                }
+
+                filterMessages();
+                elements.messageInput.value = '';
+                // Reset textarea height and focus
+                autoExpandTextarea(elements.messageInput);
+                elements.messageInput.focus();
+                localStorage.removeItem(CONFIG.STORAGE_KEYS.DRAFT);
+                
+                showToast('✉️ Message sent!');
+                playSound('send');
+                if (navigator.vibrate) navigator.vibrate(50);
+
+                // Auto scroll to bottom
+                scrollToBottom();
+            } catch (e) {
+                showToast('❌ Error sending message - queued for offline');
+                appState.offlineQueue.push(message);
+                console.error(e);
+            } finally {
+                elements.sendBtn.disabled = false;
+            }
+        }
+
+        // ==================== MESSAGE RENDERING ====================
+        function renderMessages() {
+            if (!appState.filteredMessages.length) {
+                elements.messagesContainer.innerHTML = '<div class="empty-state" style="margin: auto; text-align: center;"><div class="empty-state-icon">📭</div><div class="empty-state-text">No messages found! Start the conversation! 💬</div></div>';
+                return;
+            }
+
+            // Store scroll position before render
+            const wasAtBottom = isScrolledToBottom();
+            const scrollTopBefore = elements.messagesContainer.scrollTop;
+
+            // Use requestAnimationFrame for optimal DOM rendering
+            requestAnimationFrame(() => {
+                elements.messagesContainer.innerHTML = '';
+                let lastDate = null;
+
+                // Create document fragment for batch DOM operations
+                const fragment = document.createDocumentFragment();
+
+                appState.filteredMessages.forEach((msg, index) => {
+                    // Add date divider
+                    const msgDate = new Date(msg.timestamp).toLocaleDateString();
+                    if (msgDate !== lastDate) {
+                        const divider = document.createElement('div');
+                        divider.className = 'message-divider';
+                        divider.innerHTML = `<div class="message-divider-text">${msgDate}</div>`;
+                        fragment.appendChild(divider);
+                        lastDate = msgDate;
+                    }
+
+                    // Create message element
+                    const msgEl = document.createElement('div');
+                    const authorIsCurrentUser = msg.author === appState.currentUser;
+                    msgEl.className = `message ${authorIsCurrentUser ? 'own-message' : 'other-message'}`;
+                    msgEl.dataset.messageId = msg.id;
+                    // Only stagger animation for smaller message sets to avoid jank
+                    if (appState.filteredMessages.length < 30) {
+                        msgEl.style.animationDelay = `${index * 0.02}s`;
+                    }
+                    
+                    const timeAgo = getTimeAgo(msg.timestamp);
+                    const userInfo = CONFIG.USERS[msg.author.toUpperCase()];
+                    const reactionHTML = Object.entries(msg.reactions || {})
+                        .map(([emoji, count]) => `<div class="reaction"><span>${emoji}</span><span class="reaction-count">${count}</span></div>`)
+                        .join('');
+                    
+                    const pinnedBadge = msg.pinned ? '<div class="pinned-badge">📌 Pinned</div>' : '';
+                    const editedLabel = msg.edited ? '<span style="font-size: 11px; opacity: 0.5; margin-left: 4px;">(edited)</span>' : '';
+                    const deliveryStatus = msg.author === appState.currentUser ? (msg.seen ? '✓✓' : (msg.delivered ? '✓' : '⏳')) : '';
+                    
+                    msgEl.innerHTML = `
+                        <div class="message-header">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <div class="message-author" style="background: linear-gradient(135deg, var(--${userInfo.color}), var(--tertiary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    ${userInfo.avatar} ${escapeHtml(userInfo.name)}${editedLabel}
+                                </div>
+                            </div>
+                            <div class="message-time">${timeAgo} ${deliveryStatus}</div>
+                        </div>
+                        <div class="message-text">${linkify(escapeHtml(msg.text))}</div>
+                        ${reactionHTML ? `<div class="message-reactions">${reactionHTML}</div>` : ''}
+                        ${pinnedBadge}
+                        <div class="message-actions">
+                            <button class="message-action-btn" onclick="reactToMessage(this, '${msg.id}')" title="React">😊</button>
+                            ${authorIsCurrentUser ? `<button class="message-action-btn" onclick="editMessage(this, '${msg.id}')" title="Edit">✏️</button>` : ''}
+                            <button class="message-action-btn" onclick="pinMessage(this, '${msg.id}')" title="Pin">📌</button>
+                            ${authorIsCurrentUser ? `<button class="message-action-btn" onclick="deleteMessage(this, '${msg.id}')" title="Delete">🗑️</button>` : ''}
+                        </div>
+                    `;
+                    
+                    fragment.appendChild(msgEl);
+                });
+
+                // Single batch DOM insertion
+                elements.messagesContainer.appendChild(fragment);
+                updateMessageCounter();
+
+                // Handle auto-scroll on next animation frame
+                requestAnimationFrame(() => {
+                    if (wasAtBottom) {
+                        scrollToBottom();
+                    } else if (scrollTopBefore < 100 && appState.filteredMessages.length > 0) {
+                        // User was near top, keep them there (for scrolling to earlier messages)
+                        hideNewMessageIndicator();
+                    } else if (appState.filteredMessages.length > 0) {
+                        showNewMessageIndicator();
+                    }
+                });
+            });
+        }
+
+        // ==================== AUTO-SCROLL UTILITIES ====================
+        function isScrolledToBottom() {
+            const container = elements.messagesContainer;
+            return container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+        }
+
+        function scrollToBottom() {
+            // Use native smooth scroll for better performance
+            elements.messagesContainer.scrollTo({
+                top: elements.messagesContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+            
+            // Hide indicator after a brief delay
+            setTimeout(() => {
+                if (isScrolledToBottom()) {
+                    hideNewMessageIndicator();
+                }
+            }, 350);
+        }
+
+        function showNewMessageIndicator() {
+            let indicator = document.getElementById('newMessageIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'newMessageIndicator';
+                indicator.style.cssText = `
+                    position: absolute;
+                    bottom: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: linear-gradient(135deg, var(--primary), var(--tertiary));
+                    color: white;
+                    padding: 10px 16px;
+                    border-radius: 20px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    z-index: 100;
+                    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+                    animation: slideUp 0.3s ease-out;
+                `;
+                indicator.textContent = '👇 New Messages';
+                indicator.onclick = scrollToBottom;
+                elements.messagesContainer.parentElement.style.position = 'relative';
+                elements.messagesContainer.parentElement.appendChild(indicator);
+            }
+        }
+
+        function hideNewMessageIndicator() {
+            const indicator = document.getElementById('newMessageIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        // Scroll listener merged into main event setup for performance optimization
+
+        // ==================== SCROLL POSITION MEMORY ====================
+        // Maintains scroll position when loading older messages (pagination support)
+        function preserveScrollPosition(action, oldDOMLength = 0) {
+            if (action === 'before') {
+                appState._scrollMemory = {
+                    messagesCount: appState.filteredMessages.length,
+                    scrollHeight: elements.messagesContainer.scrollHeight,
+                    scrollTop: elements.messagesContainer.scrollTop
+                };
+            } else if (action === 'after' && appState._scrollMemory) {
+                const newScrollHeight = elements.messagesContainer.scrollHeight;
+                const heightDelta = newScrollHeight - appState._scrollMemory.scrollHeight;
+                
+                // Adjust scroll position to keep user's current view steady
+                if (heightDelta > 0) {
+                    elements.messagesContainer.scrollTop = appState._scrollMemory.scrollTop + heightDelta;
+                }
+            }
+        }
+
+        // ==================== MESSAGE ACTIONS ====================
+        function reactToMessage(btn, messageId) {
+            const msg = appState.messages.find(m => m.id === messageId);
+            if (!msg) return;
+
+            // Show reaction picker
+            const popup = document.createElement('div');
+            popup.className = 'emoji-reaction-popup';
+            reactionEmojis.forEach(emoji => {
+                const reactionBtn = document.createElement('button');
+                reactionBtn.textContent = emoji;
+                reactionBtn.onclick = () => {
+                    msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
+                    saveMessages();
+                    filterMessages();
+                    popup.remove();
+                    showToast(`${emoji} Added!`);
+                    if (navigator.vibrate) navigator.vibrate(30);
+                };
+                popup.appendChild(reactionBtn);
+            });
+
+            const rect = btn.getBoundingClientRect();
+            popup.style.left = rect.left + 'px';
+            popup.style.top = (rect.top - 50) + 'px';
+            document.body.appendChild(popup);
+
+            setTimeout(() => popup.remove(), 5000);
+        }
+
+        function editMessage(btn, messageId) {
+            const messageEl = document.querySelector(`[data-message-id="${messageId}"]`);
+            const msg = appState.messages.find(m => m.id === messageId);
+            if (!msg || msg.author !== appState.currentUser) {
+                showToast('❌ Can only edit your own messages');
+                return;
+            }
+
+            messageEl.classList.add('edit-mode');
+            const textEl = messageEl.querySelector('.message-text');
+            
+            const editDiv = document.createElement('div');
+            const input = document.createElement('textarea');
+            input.className = 'edit-input';
+            input.value = msg.text;
+            input.style.resize = 'none';
+            input.style.minHeight = '60px';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'edit-save-btn';
+            saveBtn.textContent = 'Save';
+            saveBtn.onclick = () => {
+                const oldText = msg.text;
+                const newText = input.value.trim();
+                
+                msg.text = newText;
+                msg.edited = true;
+                msg.editHistory = msg.editHistory || [];
+                msg.editHistory.push({ text: oldText, timestamp: Date.now() });
+                
+                saveMessages();
+                filterMessages();
+                showToast('✏️ Message updated!');
+            };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'edit-cancel-btn';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = () => {
+                messageEl.classList.remove('edit-mode');
+                editDiv.remove();
+            };
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'edit-actions';
+            actionsDiv.appendChild(saveBtn);
+            actionsDiv.appendChild(cancelBtn);
+
+            editDiv.appendChild(input);
+            editDiv.appendChild(actionsDiv);
+
+            textEl.replaceWith(editDiv);
+            input.focus();
+        }
+
+        function pinMessage(btn, messageId) {
+            const msg = appState.messages.find(m => m.id === messageId);
+            if (!msg) return;
+
+            msg.pinned = !msg.pinned;
+            saveMessages();
+
+            if (msg.pinned) {
+                appState.pinnedMessages.add(messageId);
+                showToast('📌 Message pinned!');
+            } else {
+                appState.pinnedMessages.delete(messageId);
+                showToast('📌 Message unpinned!');
+            }
+
+            filterMessages();
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function deleteMessage(btn, messageId) {
+            if (confirm('Delete this message?')) {
+                appState.messages = appState.messages.filter(m => m.id !== messageId);
+                saveMessages();
+                filterMessages();
+                showToast('🗑️ Message deleted');
+                if (navigator.vibrate) navigator.vibrate(30);
+            }
+        }
+
+        // ==================== MESSAGE FILTERING ====================
+        function filterMessages() {
+            const now = Date.now();
+            const oneHourAgo = now - (1000 * 60 * 60);
+
+            let filtered = [...appState.messages];
+
+            // Tab filtering
+            switch (appState.currentTab) {
+                case 'new':
+                    filtered = filtered.filter(m => m.timestamp > oneHourAgo);
+                    break;
+                case 'earlier':
+                    filtered = filtered.filter(m => m.timestamp <= oneHourAgo);
+                    break;
+                case 'pinned':
+                    filtered = filtered.filter(m => m.pinned);
+                    break;
+            }
+
+            // Search filtering
+            if (appState.searchQuery) {
+                filtered = filtered.filter(m => 
+                    m.text.toLowerCase().includes(appState.searchQuery) ||
+                    CONFIG.USERS[m.author.toUpperCase()].name.toLowerCase().includes(appState.searchQuery)
+                );
+            }
+
+            const newFilteredIds = filtered.map(m => m.id).join(',');
+            const oldFilteredIds = appState.filteredMessages.map(m => m.id).join(',');
+            
+            appState.filteredMessages = filtered.sort((a, b) => a.timestamp - b.timestamp);
+            
+            // Only re-render if filtered messages actually changed
+            if (newFilteredIds !== oldFilteredIds) {
+                renderMessages();
+            }
+        }
+
+        // ==================== PERSISTENCE ====================
+        function saveMessages() {
+            try {
+                const maxMessages = 5000;
+                const toStore = appState.messages.slice(-maxMessages);
+                localStorage.setItem(CONFIG.STORAGE_KEYS.MESSAGES, JSON.stringify(toStore));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError') {
+                    appState.messages = appState.messages.slice(-1000);
+                    try {
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.MESSAGES, JSON.stringify(appState.messages));
+                    } catch (err) {
+                        console.warn('Storage quota exceeded');
+                    }
+                }
+            }
+        }
+
+        function loadSavedMessages() {
+            try {
+                const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.MESSAGES);
+                if (saved) {
+                    appState.messages = JSON.parse(saved);
+                    appState.messages.sort((a, b) => a.timestamp - b.timestamp);
+                    filterMessages();
+                } else {
+                    loadDemoMessages();
+                }
+            } catch (e) {
+                console.error('Error loading saved messages:', e);
+                loadDemoMessages();
+            }
+        }
+
+        function loadDemoMessages() {
+            const demoMessages = [
+                { id: '1', text: 'Welcome to ES Board! 🎉', author: 'eyad', receiver: 'salma', timestamp: Date.now() - 60000, reactions: {}, pinned: false, edited: false, delivered: true, seen: true },
+                { id: '2', text: 'This is an ultra premium experience 🌟', author: 'salma', receiver: 'eyad', timestamp: Date.now() - 45000, reactions: {}, pinned: false, edited: false, delivered: true, seen: true },
+                { id: '3', text: 'Beautiful glassmorphism design! ✨', author: 'eyad', receiver: 'salma', timestamp: Date.now() - 30000, reactions: {}, pinned: false, edited: false, delivered: true, seen: true },
+                { id: '4', text: 'Real-time updates are so smooth 🚀', author: 'salma', receiver: 'eyad', timestamp: Date.now() - 15000, reactions: {}, pinned: false, edited: false, delivered: true, seen: false }
+            ];
+            
+            appState.messages = demoMessages;
+            saveMessages();
+            filterMessages();
+        }
+
+        // ==================== FIRESTORE ====================
+        function setupFirestore() {
+            try {
+                if (firebase && firebase.firestore && !appState.db) {
+                    firebase.initializeApp(CONFIG.FIREBASE_CONFIG);
+                    appState.db = firebase.firestore();
+                    console.log('✅ Firebase initialized successfully');
+                }
+            } catch (e) {
+                console.log('⚠️ Firebase initialization failed - using localStorage only', e);
+                appState.db = null;
+            }
+        }
+
+        function setupFirestoreListener() {
+            if (!appState.db) {
+                loadSavedMessages();
+                return;
+            }
+
+            try {
+                // Unsubscribe from previous listener if exists
+                if (appState.unsubscribe) {
+                    appState.unsubscribe();
+                }
+
+                // Real-time listener for messages in the conversation
+                appState.unsubscribe = appState.db
+                    .collection('conversations')
+                    .doc('eyad_salma')
+                    .collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .limit(100)
+                    .onSnapshot(snapshot => {
+                        appState.messages = [];
+                        snapshot.forEach(doc => {
+                            appState.messages.push({
+                                id: doc.id,
+                                ...doc.data()
+                            });
+                        });
+                        // Also save to localStorage as backup
+                        saveMessages();
+                        filterMessages();
+                    }, error => {
+                        console.error('Firestore listener error:', error);
+                        loadSavedMessages();
+                    });
+            } catch (e) {
+                console.error('Failed to setup Firestore listener:', e);
+                loadSavedMessages();
+            }
+        }
+
+        // ==================== TABS ====================
+        function setupTabSlider() {
+            updateTabSlider();
+        }
+
+        function updateTabSlider() {
+            const activeTab = document.querySelector('.tab.active');
+            if (!activeTab) return;
+
+            const containerRect = elements.tabsContainer.getBoundingClientRect();
+            const tabRect = activeTab.getBoundingClientRect();
+            
+            elements.tabSlider.style.width = tabRect.width + 'px';
+            elements.tabSlider.style.left = (tabRect.left - containerRect.left) + 'px';
+        }
+
+        function setActiveTab(tab) {
+            // Preserve scroll position when switching tabs
+            preserveScrollPosition('before');
+            
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            
+            appState.currentTab = tab;
+            updateTabSlider();
+            filterMessages();
+            
+            // Restore scroll position after render
+            requestAnimationFrame(() => {
+                preserveScrollPosition('after');
+                // If switching to a category with fewer messages, try to show bottom
+                if (['pinned', 'new'].includes(tab) && appState.filteredMessages.length < 10) {
+                    scrollToBottom();
+                }
+            });
+            
+            if (navigator.vibrate) navigator.vibrate(30);
+        }
+
+        // ==================== SEARCH ====================
+        function toggleSearch() {
+            elements.searchBar.classList.toggle('active');
+            if (elements.searchBar.classList.contains('active')) {
+                elements.searchInput.focus();
+            }
+        }
+
+        function closeSearch() {
+            elements.searchBar.classList.remove('active');
+            elements.searchInput.value = '';
+            appState.searchQuery = '';
+            filterMessages();
+        }
+
+        // ==================== COUNTDOWN ====================
+        function setupCountdown() {
+            updateCountdown();
+            appState._countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const endDate = new Date(now.getFullYear(), 2, 21); // March 21
+            
+            if (endDate < now) {
+                endDate.setFullYear(endDate.getFullYear() + 1);
+            }
+
+            const diff = endDate - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            elements.countdown.textContent = `⏰ ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        // ==================== THEME ====================
+        function toggleTheme() {
+            appState.theme = appState.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, appState.theme);
+            loadTheme();
+        }
+
+        function loadTheme() {
+            if (appState.theme === 'light') {
+                document.body.classList.add('light-theme');
+                elements.themeToggle.textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                elements.themeToggle.textContent = '🌙';
+            }
+        }
+
+        // ==================== UI STATE ====================
+        function updateMessageCounter() {
+            elements.messageCounter.textContent = `${appState.messages.length} message${appState.messages.length !== 1 ? 's' : ''}`;
+        }
+
+        function handleInfiniteScroll() {
+            const container = elements.messagesContainer;
+            if (container.scrollTop === 0 && !appState.isLoadingMore) {
+                appState.isLoadingMore = true;
+                setTimeout(() => {
+                    appState.isLoadingMore = false;
+                }, 500);
+            }
+        }
+
+        // ==================== NOTIFICATIONS ====================
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('removing');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // ==================== EMOJI & INTERACTIONS ====================
+        function showEmojiPicker() {
+            const currentText = elements.messageInput.value;
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            elements.messageInput.value = currentText + randomEmoji;
+            elements.messageInput.focus();
+            
+            if (navigator.vibrate) navigator.vibrate(30);
+        }
+
+        // ==================== EASTER EGGS ====================
+        function triggerGodMode() {
+            // Particle explosion
+            for (let i = 0; i < 50; i++) {
+                createConfetti();
+            }
+
+            // Epic glow
+            document.body.style.boxShadow = 'inset 0 0 80px rgba(0, 212, 255, 0.3)';
+            setTimeout(() => {
+                document.body.style.boxShadow = '';
+            }, 500);
+
+            playSound('success');
+            showToast('🔥 ULTRA GOD MODE ACTIVATED! 🔥');
+        }
+
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.textContent = ['✨', '🚀', '💎', '👑', '⭐'][Math.floor(Math.random() * 5)];
+            confetti.style.left = Math.random() * window.innerWidth + 'px';
+            confetti.style.top = '-10px';
+            confetti.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            confetti.style.opacity = Math.random();
+            confetti.style.animation = `confettiFall ${Math.random() * 3 + 2}s linear`;
+
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 5000);
+        }
+
+        // ==================== NETWORK & OFFLINE ====================
+        function setupNetworkListeners() {
+            window.addEventListener('online', () => {
+                appState.isOnline = true;
+                elements.offlineIndicator.classList.add('hidden');
+                showToast('📡 Back online!');
+                syncOfflineMessages();
+            });
+
+            window.addEventListener('offline', () => {
+                appState.isOnline = false;
+                elements.offlineIndicator.classList.remove('hidden');
+                showToast('📡 You are offline');
+            });
+        }
+
+        function syncOfflineMessages() {
+            if (appState.offlineQueue.length > 0) {
+                const queuedCount = appState.offlineQueue.length;
+                appState.offlineQueue.forEach(msg => {
+                    appState.messages.push(msg);
+                });
+                appState.messages.sort((a, b) => a.timestamp - b.timestamp);
+                appState.offlineQueue = [];
+                saveMessages();
+                filterMessages();
+                showToast(`✨ Synced ${queuedCount} message${queuedCount !== 1 ? 's' : ''}!`);
+            }
+        }
+
+        // ==================== TYPING INDICATORS ====================
+        function broadcastTypingStatus(isTyping) {
+            appState.userTyping = isTyping;
+            
+            // Store typing status in localStorage for demo
+            if (isTyping) {
+                localStorage.setItem(CONFIG.STORAGE_KEYS.TYPING, appState.currentUser);
+            } else {
+                localStorage.removeItem(CONFIG.STORAGE_KEYS.TYPING);
+            }
+
+            // In production, this would update Firestore user presence
+            if (appState.db) {
+                try {
+                    appState.db.collection('users').doc(appState.currentUser).set({
+                        typing: isTyping,
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                } catch (e) {
+                    console.log('Could not broadcast typing status');
+                }
+            }
+        }
+
+        function checkOtherUserTyping() {
+            const typingUser = localStorage.getItem(CONFIG.STORAGE_KEYS.TYPING);
+            const isOtherUserTyping = typingUser === appState.otherUser;
+            
+            const typingElement = document.getElementById('currentUserTyping');
+            if (isOtherUserTyping && typingElement) {
+                typingElement.style.display = 'inline-flex';
+            } else if (typingElement) {
+                typingElement.style.display = 'none';
+            }
+        }
+
+        // Check typing status periodically
+        appState._typingInterval = setInterval(checkOtherUserTyping, 500);
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function getTimeAgo(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (seconds < 60) return 'now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            return `${days}d ago`;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function linkify(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+        }
+
+        // ==================== SOUND EFFECTS ====================
+        function playSound(type) {
+            // Create simple beep sounds using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch (type) {
+                    case 'send':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.1);
+                        break;
+                    case 'login':
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.2);
+                        break;
+                    case 'success':
+                        oscillator.frequency.value = 1000;
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.3);
+                        break;
+                    case 'error':
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + 0.15);
+                        break;
+                }
+            } catch (e) {
+                console.log('Audio context not available');
+            }
+        }
+
+        // ==================== STARTUP ====================
+        // Initialize once DOM is fully ready
+        // This prevents page scroll/logging from affecting message layout
+        window.addEventListener('resize', debounce(updateTabSlider, 250));
+        
+        // Reset any inadvertent scrolling caused by page load/logs
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        
+        // Initialize app after DOM is completely ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(init);
+            });
+        }
+    </script>
+</body>
+</html>
